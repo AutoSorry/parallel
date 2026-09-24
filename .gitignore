@@ -1,0 +1,18 @@
+# Build trees and generated CMake files
+build/
+**/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Generated experiment output
+*.o
+*.a
+*.so
+
+# macOS/editor files
+.DS_Store
+.vscode/
+.idea/
