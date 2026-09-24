@@ -1,22 +1,16 @@
-cmake_minimum_required(VERSION 3.16)
+set(MATRIX_N "1024" CACHE STRING "default matrix size")
 
-project(matrix-mul C)
+file(GLOB MATMUL_SOURCES CONFIGURE_DEPENDS
+    src/*.c
+    algorithms/*.c
+)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+add_executable(matmul ${MATMUL_SOURCES})
 
-set(DEFAULT_MATRIX_N "1024" CACHE STRING "default matrix size")
-
-file(GLOB SRC_FILES CONFIGURE_DEPENDS src/*.c algorithms/*.c)
-
-add_executable(matmul ${SRC_FILES})
-
-target_include_directories(matmul PRIVATE include src)
-target_compile_definitions(matmul PRIVATE DEFAULT_MATRIX_N=${DEFAULT_MATRIX_N})
-
+target_include_directories(matmul PRIVATE include)
+target_compile_definitions(matmul PRIVATE MATRIX_N=${MATRIX_N})
 target_compile_options(matmul PRIVATE -O2 -Wall -Wextra)
-target_link_libraries(matmul PRIVATE m)
+target_link_libraries(matmul PRIVATE kernel_framework m)
 
 if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang")
     find_path(LIBOMP_INCLUDE_DIR omp.h

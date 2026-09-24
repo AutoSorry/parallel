@@ -4,21 +4,28 @@
 #include <omp.h>
 #endif
 
-static void matmul_openmp(const double *A, const double *B, double *C, int n, const matmul_options *options) {
+static void run_openmp(kernel_data *data, const kernel_options *options) {
 #ifdef _OPENMP
-    int requested_threads = options ? options->threads : 0;
+    int requested_threads = options != NULL ? options->threads : 0;
     int threads = requested_threads > 0 ? requested_threads : omp_get_max_threads();
 #pragma omp parallel for num_threads(threads)
+#else
+    (void)options;
 #endif
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
+    for (int i = 0; i < data->n; ++i) {
+        for (int j = 0; j < data->n; ++j) {
             double sum = 0.0;
-            for (int k = 0; k < n; ++k) {
-                sum += A[i * n + k] * B[k * n + j];
+            for (int k = 0; k < data->n; ++k) {
+                sum += data->a[i * data->n + k] * data->b[k * data->n + j];
             }
-            C[i * n + j] = sum;
+            data->c[i * data->n + j] = sum;
         }
     }
 }
 
-REGISTER_ALGORITHM("openmp", "OpenMP parallel outer-loop baseline", matmul_openmp)
+void matmul_register_openmp(void) {
+    static const kernel_module module = {
+        "openmp", "OpenMP parallel outer-loop baseline", run_openmp
+    };
+    kernel_register(&module);
+}

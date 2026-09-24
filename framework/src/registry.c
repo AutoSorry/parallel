@@ -1,15 +1,15 @@
-#include "matmul.h"
+#include "registry.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_MODULES 32
+#define MAX_KERNEL_MODULES 32
 
-static const matmul_module *modules[MAX_MODULES];
+static const kernel_module *modules[MAX_KERNEL_MODULES];
 static int module_count = 0;
 
-int matmul_register(const matmul_module *module) {
-    if (module == NULL || module->name == NULL || module->fn == NULL) {
+int kernel_register(const kernel_module *module) {
+    if (module == NULL || module->name == NULL || module->run == NULL) {
         return -1;
     }
 
@@ -19,7 +19,7 @@ int matmul_register(const matmul_module *module) {
         }
     }
 
-    if (module_count >= MAX_MODULES) {
+    if (module_count >= MAX_KERNEL_MODULES) {
         return -1;
     }
 
@@ -27,7 +27,7 @@ int matmul_register(const matmul_module *module) {
     return 0;
 }
 
-const matmul_module *matmul_get(const char *name) {
+const kernel_module *kernel_find(const char *name) {
     if (name == NULL) {
         return NULL;
     }
@@ -41,21 +41,23 @@ const matmul_module *matmul_get(const char *name) {
     return NULL;
 }
 
-int matmul_count(void) {
+int kernel_count(void) {
     return module_count;
 }
 
-const matmul_module *matmul_at(int index) {
+const kernel_module *kernel_at(int index) {
     if (index < 0 || index >= module_count) {
         return NULL;
     }
     return modules[index];
 }
 
-void matmul_list_all(void) {
+void kernel_list_all(void) {
     printf("Available modules:\n");
     for (int i = 0; i < module_count; ++i) {
-        const char *desc = modules[i]->description ? modules[i]->description : "";
-        printf("  %-16s %s\n", modules[i]->name, desc);
+        const char *description = modules[i]->description != NULL
+                                      ? modules[i]->description
+                                      : "";
+        printf("  %-16s %s\n", modules[i]->name, description);
     }
 }

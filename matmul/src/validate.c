@@ -1,24 +1,24 @@
-#include "validate.h"
+#include "matmul_validate.h"
 
 #include <math.h>
 #include <stdio.h>
 
-int validate_result(const double *C, const double *ref, int n) {
+int matmul_validate_result(const double *actual, const double *reference, int n) {
     double max_abs = 0.0;
-    double max_ref = 0.0;
+    double max_reference = 0.0;
 
     for (int i = 0; i < n * n; ++i) {
-        double err = fabs(C[i] - ref[i]);
-        double mag = fabs(ref[i]);
-        if (err > max_abs) {
-            max_abs = err;
+        double absolute_error = fabs(actual[i] - reference[i]);
+        double reference_magnitude = fabs(reference[i]);
+        if (absolute_error > max_abs) {
+            max_abs = absolute_error;
         }
-        if (mag > max_ref) {
-            max_ref = mag;
+        if (reference_magnitude > max_reference) {
+            max_reference = reference_magnitude;
         }
     }
 
-    double rel = max_abs / (max_ref > 0.0 ? max_ref : 1.0);
-    printf("max_abs_error=%.6e max_rel_error=%.6e ", max_abs, rel);
-    return rel < 1e-9;
+    double relative_error = max_abs / (max_reference > 0.0 ? max_reference : 1.0);
+    printf("max_abs_error=%.6e max_rel_error=%.6e ", max_abs, relative_error);
+    return relative_error < 1e-9;
 }

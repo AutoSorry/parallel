@@ -22,10 +22,10 @@ lu：    LU 分解工具
 
 ## 2. 目标目录结构
 
-最终目录结构计划如下：
+当前重建后的目标目录结构如下：
 
 ```text
-matrix-kernels/
+parallel/
 ├── CMakeLists.txt
 ├── README.md
 ├── REBUILD_PLAN.md
@@ -69,7 +69,7 @@ matrix-kernels/
     └── ...
 ```
 
-说明：目录名可以根据后续仓库命名调整，但“共享 framework + 独立 matmul + 独立 lu”这一层次保持不变。
+说明：当前目录 `parallel/` 已作为独立 Git 仓库根目录；`calcu-pi/` 暂时保留在同一仓库中，后续另行重构。
 
 ---
 
@@ -212,7 +212,7 @@ C ≈ A * B
 目标可执行文件：
 
 ```bash
-./build/matmul
+./build/matmul/matmul
 ```
 
 ---
@@ -427,8 +427,8 @@ git show-ref backup/pre-framework-rebuild
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/matmul --list
-./build/matmul -m naive -n 4 -r 1
+./build/matmul/matmul --list
+./build/matmul/matmul -m naive -n 4 -r 1
 ```
 
 验收：
@@ -441,8 +441,8 @@ cmake --build build
 ### 阶段 C：LU 工具
 
 ```bash
-./build/lu --list
-./build/lu -m serial_lu -n 4 -r 1
+./build/lu/lu --list
+./build/lu/lu -m serial_lu -n 4 -r 1
 ```
 
 验收：

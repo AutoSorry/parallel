@@ -1,13 +1,15 @@
 #include "matmul.h"
 
-static void matmul_stub(const double *A, const double *B, double *C, int n, const matmul_options *options) {
-    (void)A;
-    (void)B;
+static void run_stub(kernel_data *data, const kernel_options *options) {
     (void)options;
-
-    for (int i = 0; i < n * n; ++i) {
-        C[i] = 0.0;
+    for (int i = 0; i < data->n * data->n; ++i) {
+        data->c[i] = 0.0;
     }
 }
 
-REGISTER_ALGORITHM("stub", "placeholder algorithm, expected to fail validation", matmul_stub)
+void matmul_register_stub(void) {
+    static const kernel_module module = {
+        "stub", "placeholder algorithm, expected to fail validation", run_stub
+    };
+    kernel_register(&module);
+}

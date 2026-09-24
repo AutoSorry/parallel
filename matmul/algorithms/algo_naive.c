@@ -1,21 +1,22 @@
 #include "matmul.h"
 
-static void matmul_naive(const double *A, const double *B, double *C, int n, const matmul_options *options) {
+static void run_naive(kernel_data *data, const kernel_options *options) {
     (void)options;
 
-    for (int i = 0; i < n * n; ++i) {
-        C[i] = 0.0;
-    }
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
+    for (int i = 0; i < data->n; ++i) {
+        for (int j = 0; j < data->n; ++j) {
             double sum = 0.0;
-            for (int k = 0; k < n; ++k) {
-                sum += A[i * n + k] * B[k * n + j];
+            for (int k = 0; k < data->n; ++k) {
+                sum += data->a[i * data->n + k] * data->b[k * data->n + j];
             }
-            C[i * n + j] = sum;
+            data->c[i * data->n + j] = sum;
         }
     }
 }
 
-REGISTER_ALGORITHM("naive", "serial triple-loop baseline", matmul_naive)
+void matmul_register_naive(void) {
+    static const kernel_module module = {
+        "naive", "serial triple-loop baseline", run_naive
+    };
+    kernel_register(&module);
+}

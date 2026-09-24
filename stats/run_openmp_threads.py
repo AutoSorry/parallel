@@ -57,7 +57,7 @@ def main():
     run_command(["cmake", "-S", ".", "-B", BUILD_DIR])
     run_command(["cmake", "--build", BUILD_DIR])
 
-    executable = f"./{BUILD_DIR}/matmul"
+    executable = f"./{BUILD_DIR}/matmul/matmul"
 
     baseline_output = run_command([executable, "-m", "naive", "-n", str(MATRIX_N), "-r", str(RUNS)])
     baseline = parse_output(baseline_output)
