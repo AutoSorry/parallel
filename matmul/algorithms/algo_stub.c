@@ -2,8 +2,9 @@
 
 static void run_stub(kernel_data *data, const kernel_options *options) {
     (void)options;
-    for (int i = 0; i < data->n * data->n; ++i) {
-        data->c[i] = 0.0;
+    matmul_problem *problem = data->problem;
+    for (int i = 0; i < problem->n * problem->n; ++i) {
+        problem->c[i] = 0.0;
     }
 }
 

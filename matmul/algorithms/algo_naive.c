@@ -2,14 +2,16 @@
 
 static void run_naive(kernel_data *data, const kernel_options *options) {
     (void)options;
+    matmul_problem *problem = data->problem;
 
-    for (int i = 0; i < data->n; ++i) {
-        for (int j = 0; j < data->n; ++j) {
+    for (int i = 0; i < problem->n; ++i) {
+        for (int j = 0; j < problem->n; ++j) {
             double sum = 0.0;
-            for (int k = 0; k < data->n; ++k) {
-                sum += data->a[i * data->n + k] * data->b[k * data->n + j];
+            for (int k = 0; k < problem->n; ++k) {
+                sum += problem->a[i * problem->n + k] *
+                       problem->b[k * problem->n + j];
             }
-            data->c[i * data->n + j] = sum;
+            problem->c[i * problem->n + j] = sum;
         }
     }
 }

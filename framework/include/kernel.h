@@ -2,15 +2,14 @@
 #define KERNEL_H
 
 typedef struct {
-    const double *a;
-    const double *b;
-    double *c;
-    int n;
-    void *extra;
+    /* The application owns and defines the problem object. */
+    void *problem;
+    /* Optional algorithm-owned temporary storage. */
+    void *workspace;
 } kernel_data;
 
 typedef struct {
-    int runs;
+    /* Zero means that the algorithm should use its default. */
     int threads;
 } kernel_options;
 

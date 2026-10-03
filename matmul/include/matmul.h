@@ -2,6 +2,7 @@
 #define MATMUL_H
 
 #include "kernel.h"
+#include "matmul_matrix.h"
 #include "registry.h"
 
 void matmul_register_algorithms(void);

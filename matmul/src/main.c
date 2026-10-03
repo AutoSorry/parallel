@@ -2,7 +2,6 @@
 #include "matmul_config.h"
 #include "matmul_validate.h"
 #include "matmul_matrix.h"
-#include "matrix.h"
 #include "timer.h"
 
 #include <stdio.h>
@@ -24,8 +23,9 @@ static int run_module(const kernel_module *module,
     double total_ms = 0.0;
 
     printf("\nmodule: %s\n", module->name);
+    matmul_problem *problem = data->problem;
     for (int run = 0; run < runs; ++run) {
-        matrix_zero(data->c, data->n);
+        matmul_matrix_zero(problem->c, problem->n);
         double start = now_seconds();
         module->run(data, options);
         double end = now_seconds();
@@ -35,9 +35,9 @@ static int run_module(const kernel_module *module,
     }
 
     printf("  avg: %.3f ms\n", total_ms / runs);
-    printf("  sum: %.6f\n", matrix_sum(data->c, data->n));
+    printf("  sum: %.6f\n", matmul_matrix_sum(problem->c, problem->n));
     printf("  validation: ");
-    int passed = matmul_validate_result(data->c, reference, data->n);
+    int passed = matmul_validate_result(problem->c, reference, problem->n);
     printf("%s\n", passed ? "PASS" : "FAIL");
     return passed ? 0 : 1;
 }
@@ -125,9 +125,15 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    matmul_matrix_init(a, b, c, n);
-    kernel_options options = {.runs = runs, .threads = threads};
-    kernel_data reference_data = {.a = a, .b = b, .c = reference, .n = n, .extra = NULL};
+    matmul_problem problem = {.n = n, .a = a, .b = b, .c = c};
+    matmul_problem reference_problem = {
+        .n = n, .a = a, .b = b, .c = reference
+    };
+    matmul_matrix_init(&problem);
+    kernel_options options = {.threads = threads};
+    kernel_data reference_data = {
+        .problem = &reference_problem, .workspace = NULL
+    };
     const kernel_module *naive = kernel_find("naive");
     if (naive == NULL) {
         fprintf(stderr, "naive reference module is missing\n");
@@ -142,7 +148,7 @@ int main(int argc, char **argv) {
     printf("N=%d runs=%d threads=%s\n", n, runs,
            threads > 0 ? "requested" : "default");
 
-    kernel_data data = {.a = a, .b = b, .c = c, .n = n, .extra = NULL};
+    kernel_data data = {.problem = &problem, .workspace = NULL};
     int failed = 0;
     if (run_all) {
         for (int i = 0; i < kernel_count(); ++i) {

@@ -1,6 +1,15 @@
-#ifndef MATMUL_INPUT_H
-#define MATMUL_INPUT_H
+#ifndef MATMUL_MATRIX_H
+#define MATMUL_MATRIX_H
 
-void matmul_matrix_init(double *a, double *b, double *c, int n);
+typedef struct {
+    int n;
+    double *a;
+    double *b;
+    double *c;
+} matmul_problem;
+
+void matmul_matrix_init(matmul_problem *problem);
+void matmul_matrix_zero(double *matrix, int n);
+double matmul_matrix_sum(const double *matrix, int n);
 
 #endif
