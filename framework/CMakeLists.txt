@@ -1,5 +1,4 @@
 add_library(kernel_framework STATIC
-    src/matrix.c
     src/registry.c
     src/timer.c
 )
