@@ -1,4 +1,4 @@
-#include "matmul.h"
+#include "app.h"
 #include <stddef.h>
 
 #ifdef _OPENMP

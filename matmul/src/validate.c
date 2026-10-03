@@ -1,4 +1,4 @@
-#include "matmul_validate.h"
+#include "validate.h"
 
 #include <math.h>
 #include <stdio.h>

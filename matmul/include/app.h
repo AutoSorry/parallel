@@ -1,9 +1,10 @@
-#ifndef MATMUL_H
-#define MATMUL_H
+#ifndef APP_H
+#define APP_H
 
 #include "kernel.h"
-#include "matmul_matrix.h"
-#include "matmul_problem.h"
+#include "input.h"
+#include "matrix.h"
+#include "problem.h"
 #include "registry.h"
 
 void matmul_register_algorithms(void);

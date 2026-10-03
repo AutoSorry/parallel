@@ -1,5 +1,3 @@
-set(MATRIX_N "1024" CACHE STRING "default matrix size")
-
 file(GLOB MATMUL_SOURCES CONFIGURE_DEPENDS
     src/*.c
     algorithms/*.c
@@ -8,7 +6,6 @@ file(GLOB MATMUL_SOURCES CONFIGURE_DEPENDS
 add_executable(matmul ${MATMUL_SOURCES})
 
 target_include_directories(matmul PRIVATE include)
-target_compile_definitions(matmul PRIVATE MATRIX_N=${MATRIX_N})
 target_compile_options(matmul PRIVATE -O2 -Wall -Wextra)
 target_link_libraries(matmul PRIVATE kernel_framework m)
 

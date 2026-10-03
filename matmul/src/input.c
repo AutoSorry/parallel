@@ -1,4 +1,5 @@
-#include "matmul_matrix.h"
+#include "input.h"
+#include "matrix.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -53,10 +54,10 @@ static int load_file(double *matrix, int n, const char *source,
     return 0;
 }
 
-int matmul_matrix_source_dimension(const char *source,
-                                   int *dimension,
-                                   char *error,
-                                   size_t error_size) {
+int matrix_source_dimension(const char *source,
+                            int *dimension,
+                            char *error,
+                            size_t error_size) {
     if (strcmp(source, "random") == 0) {
         *dimension = 0;
         return 0;
@@ -79,11 +80,11 @@ int matmul_matrix_source_dimension(const char *source,
     return 0;
 }
 
-int matmul_matrix_init(matmul_problem *problem,
-                       const char *source_a,
-                       const char *source_b,
-                       char *error,
-                       size_t error_size) {
+int matrix_problem_init(matmul_problem *problem,
+                        const char *source_a,
+                        const char *source_b,
+                        char *error,
+                        size_t error_size) {
     if (strcmp(source_a, "random") == 0) {
         fill_random(problem->a, problem->n, 123456789u);
     } else if (load_file(problem->a, problem->n, source_a,
@@ -100,18 +101,4 @@ int matmul_matrix_init(matmul_problem *problem,
 
     matmul_matrix_zero(problem->c, problem->n);
     return 0;
-}
-
-void matmul_matrix_zero(double *matrix, int n) {
-    for (int i = 0; i < n * n; ++i) {
-        matrix[i] = 0.0;
-    }
-}
-
-double matmul_matrix_sum(const double *matrix, int n) {
-    double sum = 0.0;
-    for (int i = 0; i < n * n; ++i) {
-        sum += matrix[i];
-    }
-    return sum;
 }

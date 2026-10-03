@@ -1,5 +1,5 @@
-#ifndef MATMUL_PROBLEM_H
-#define MATMUL_PROBLEM_H
+#ifndef PROBLEM_H
+#define PROBLEM_H
 
 typedef struct {
     int n;

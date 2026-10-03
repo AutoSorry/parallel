@@ -45,7 +45,8 @@ and `-B`/`--input-b`:
 ```
 
 The source `random` selects deterministic generated data. Any other source is
-treated as a text file. A matrix file starts with its dimension and then has
+treated as a text file. When both sources are `random`, `-n` is required; a
+file source provides the dimension. A matrix file starts with its dimension and then has
 `N*N` numeric values, for example:
 
 ```text

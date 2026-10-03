@@ -1,4 +1,4 @@
-#include "matmul.h"
+#include "app.h"
 
 void matmul_register_naive(void);
 void matmul_register_openmp(void);

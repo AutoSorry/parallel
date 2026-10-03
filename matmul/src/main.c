@@ -1,7 +1,5 @@
-#include "matmul.h"
-#include "matmul_config.h"
-#include "matmul_validate.h"
-#include "matmul_matrix.h"
+#include "app.h"
+#include "validate.h"
 #include "timer.h"
 
 #include <stdio.h>
@@ -46,7 +44,7 @@ static int run_module(const kernel_module *module,
 }
 
 int main(int argc, char **argv) {
-    int n = MATRIX_N;
+    int n = 0;
     int runs = 5;
     int threads = 0;
     int size_specified = 0;
@@ -133,10 +131,10 @@ int main(int argc, char **argv) {
     char error[256];
     int source_a_n = 0;
     int source_b_n = 0;
-    if (matmul_matrix_source_dimension(source_a, &source_a_n,
-                                       error, sizeof(error)) != 0 ||
-        matmul_matrix_source_dimension(source_b, &source_b_n,
-                                       error, sizeof(error)) != 0) {
+    if (matrix_source_dimension(source_a, &source_a_n,
+                                error, sizeof(error)) != 0 ||
+        matrix_source_dimension(source_b, &source_b_n,
+                                error, sizeof(error)) != 0) {
         fprintf(stderr, "%s\n", error);
         return 1;
     }
@@ -152,6 +150,9 @@ int main(int argc, char **argv) {
             return 1;
         }
         n = file_n;
+    } else if (!size_specified) {
+        fprintf(stderr, "--size is required when both inputs are random\n");
+        return 1;
     }
 
     size_t bytes = (size_t)n * (size_t)n * sizeof(double);
@@ -172,8 +173,8 @@ int main(int argc, char **argv) {
     matmul_problem reference_problem = {
         .n = n, .a = a, .b = b, .c = reference
     };
-    if (matmul_matrix_init(&problem, source_a, source_b,
-                           error, sizeof(error)) != 0) {
+    if (matrix_problem_init(&problem, source_a, source_b,
+                            error, sizeof(error)) != 0) {
         fprintf(stderr, "%s\n", error);
         free(a);
         free(b);

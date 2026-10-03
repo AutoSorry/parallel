@@ -1,4 +1,4 @@
-#include "matmul.h"
+#include "app.h"
 
 static void run_stub(kernel_data *data, const kernel_options *options) {
     (void)options;
