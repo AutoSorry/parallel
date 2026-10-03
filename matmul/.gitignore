@@ -1,8 +1,0 @@
-# CMake 产物
-build/
-
-# opencode 配置
-opencode.json
-
-# 统计数据
-stats/display
