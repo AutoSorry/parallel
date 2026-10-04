@@ -9,8 +9,19 @@ static unsigned int next_value(unsigned int *state) {
     return *state;
 }
 
-void matrix_fill_random(matrix *value, unsigned int seed) {
-    unsigned int state = seed;
+static unsigned int seed_state(const char *seed, char stream) {
+    unsigned int state = 2166136261u;
+    for (int i = 0; i < 8; ++i) {
+        state ^= (unsigned char)seed[i];
+        state *= 16777619u;
+    }
+    state ^= (unsigned char)stream;
+    state *= 16777619u;
+    return state;
+}
+
+void matrix_fill_random(matrix *value, const char *seed, char stream) {
+    unsigned int state = seed_state(seed, stream);
 
     for (int i = 0; i < value->n * value->n; ++i) {
         value->data[i] = (double)(next_value(&state) % 1000u) / 1000.0;

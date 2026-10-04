@@ -2,8 +2,6 @@
 
 #include "registry.h"
 
-#include <errno.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +14,7 @@ void cli_defaults(cli_options *options) {
     options->size_specified = 0;
     options->threads = 0;
     options->seed_specified = 0;
-    options->seed = 0;
+    options->seed[0] = '\0';
     options->source_a = "random";
     options->source_b = "random";
     options->selected_count = 0;
@@ -25,7 +23,7 @@ void cli_defaults(cli_options *options) {
 void cli_print_usage(const char *program) {
     printf("Usage: %s [--list|-l] [--all|-a] [--module|-m NAME] "
            "[--runs|-r N] [--size|-n N] [--threads|-t N] "
-           "[--input-a|-A SOURCE] [--input-b|-B SOURCE] [--seed N]\n", program);
+           "[--input-a|-A SOURCE] [--input-b|-B SOURCE] [--seed SEED]\n", program);
     printf("SOURCE is 'random' or a matrix file whose first value is N, "
            "followed by N*N values.\n");
 }
@@ -103,18 +101,17 @@ int cli_parse(cli_options *options, int argc, char **argv) {
                 return -1;
             }
             const char *text = argv[++i];
-            char *end;
-            errno = 0;
-            if (text[0] == '-' || text[0] == '\0') {
-                fprintf(stderr, "seed must be an unsigned integer\n");
+            if (strlen(text) != SEED_LENGTH) {
+                fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
                 return -1;
             }
-            unsigned long seed = strtoul(text, &end, 10);
-            if (errno == ERANGE || seed > UINT_MAX || *end != '\0') {
-                fprintf(stderr, "seed must be an unsigned integer\n");
-                return -1;
+            for (int j = 0; j < SEED_LENGTH; ++j) {
+                if (text[j] < 'A' || text[j] > 'Z') {
+                    fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
+                    return -1;
+                }
             }
-            options->seed = (unsigned int)seed;
+            memcpy(options->seed, text, SEED_LENGTH + 1);
             options->seed_specified = 1;
         } else {
             cli_print_usage(argv[0]);

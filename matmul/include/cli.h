@@ -4,6 +4,7 @@
 #include "kernel.h"
 
 #define MAX_SELECTED 64
+#define SEED_LENGTH 8
 
 typedef struct {
     int show_list;
@@ -13,7 +14,7 @@ typedef struct {
     int size_specified;
     int threads;
     int seed_specified;
-    unsigned int seed;
+    char seed[SEED_LENGTH + 1];
     const char *source_a;
     const char *source_b;
     const kernel_module *selected[MAX_SELECTED];

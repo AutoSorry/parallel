@@ -11,6 +11,6 @@ int matrix_source_dimension(const char *source,
                             size_t error_size);
 int matrix_read_file(matrix *value, const char *path,
                      char *error, size_t error_size);
-void matrix_fill_random(matrix *value, unsigned int seed);
+void matrix_fill_random(matrix *value, const char *seed, char stream);
 
 #endif

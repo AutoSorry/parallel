@@ -60,14 +60,14 @@ cmake --build build
 | `-t`, `--threads N` | 指定 OpenMP 线程数 |
 | `-A`, `--input-a SOURCE` | 指定输入矩阵 A 的来源 |
 | `-B`, `--input-b SOURCE` | 指定输入矩阵 B 的来源 |
-| `--seed N` | 为随机输入指定种子 |
+| `--seed SEED` | 为随机输入指定 8 个大写字母组成的种子 |
 
 ### 输入矩阵
 
 A、B 可分别选择 `random` 或文本文件路径；未指定时默认为 `random`。
 
 ```bash
-./build/bin/matmul -A random -B random -n 500 --seed 1234 -m naive
+./build/bin/matmul -A random -B random -n 500 --seed ABCDEFGH -m naive
 ./build/bin/matmul -A matrix_a.txt -B matrix_b.txt -m naive
 ./build/bin/matmul -A matrix_a.txt -B random -m openmp -t 4
 ```

@@ -8,12 +8,20 @@
 #include <string.h>
 #include <time.h>
 
-static unsigned int default_seed(void) {
+static void default_seed(char *seed) {
     struct timespec now;
+    unsigned long long value;
     if (clock_gettime(CLOCK_REALTIME, &now) == 0) {
-        return (unsigned int)now.tv_sec ^ (unsigned int)now.tv_nsec;
+        value = (unsigned long long)now.tv_sec ^
+                (unsigned long long)now.tv_nsec;
+    } else {
+        value = (unsigned long long)time(NULL);
     }
-    return (unsigned int)time(NULL);
+    for (int i = 0; i < SEED_LENGTH; ++i) {
+        value = value * 6364136223846793005ULL + 1442695040888963407ULL;
+        seed[i] = (char)('A' + (value % 26));
+    }
+    seed[SEED_LENGTH] = '\0';
 }
 
 static int run_module(const kernel_module *module,
@@ -112,20 +120,24 @@ int main(int argc, char **argv) {
     matrix reference_matrix = {.n = n, .data = reference};
     int random_a = strcmp(cli.source_a, "random") == 0;
     int random_b = strcmp(cli.source_b, "random") == 0;
-    unsigned int seed = 0;
+    char seed[SEED_LENGTH + 1];
     if (random_a || random_b) {
-        seed = cli.seed_specified ? cli.seed : default_seed();
+        if (cli.seed_specified) {
+            memcpy(seed, cli.seed, sizeof(seed));
+        } else {
+            default_seed(seed);
+        }
     }
     int input_failed = 0;
     if (random_a) {
-        matrix_fill_random(&a_matrix, seed);
+        matrix_fill_random(&a_matrix, seed, 'A');
     } else {
         input_failed = matrix_read_file(&a_matrix, cli.source_a,
                                         error, sizeof(error));
     }
     if (!input_failed) {
         if (random_b) {
-            matrix_fill_random(&b_matrix, seed ^ 0x9e3779b9u);
+            matrix_fill_random(&b_matrix, seed, 'B');
         } else {
             input_failed = matrix_read_file(&b_matrix, cli.source_b,
                                             error, sizeof(error));
@@ -140,7 +152,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     if (random_a || random_b) {
-        printf("seed=%u\n", seed);
+        printf("seed=%s\n", seed);
     }
     kernel_options options = {.threads = cli.threads};
     matmul_task task = {
