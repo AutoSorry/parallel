@@ -1,69 +1,83 @@
-# Matrix Multiplication
+# 并行程序设计实验——矩阵乘法
 
-This branch contains the matrix multiplication command-line tool, built on the
-shared `framework/` library. It includes serial (`naive`) and OpenMP (`openmp`)
-implementations. The `stub` module is a placeholder: it is excluded from
-`--all` and fails validation when run explicitly.
+本项目实现一份矩阵乘法命令行程序，使用朴素串行程序作为 basline ，支持对并行算法进行正确性检验以及性能测量。
 
-## Build
+## 项目结构
 
-Requirements: CMake and a C compiler. OpenMP support is needed for parallel
-execution; on macOS, use Homebrew GCC explicitly (Apple Clang needs `libomp`).
+```text
+.
+├── CMakeLists.txt              # 项目构建入口
+├── framework/                  # 通用接口
+│   ├── CMakeLists.txt
+│   ├── include/
+│   │   ├── kernel.h
+│   │   ├── registry.h
+│   │   └── timer.h
+│   └── src/
+│       ├── registry.c
+│       └── timer.c
+└── matmul/                     # 矩阵乘法应用
+    ├── CMakeLists.txt
+    ├── algorithms/
+    ├── include/
+    └── src/
+```
+
+## 环境与构建
+
+| 依赖 | 要求 |
+| --- | --- |
+| CMake | 3.16 或更高版本 |
+| GCC | 支持 C99 和 OpenMP 的 GNU C 编译器 |
+
+在仓库根目录执行，首次配置时显式指定 GCC 编译器：
 
 ```bash
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_C_COMPILER=/path/to/gcc
 cmake --build build
 ```
 
-On macOS with Homebrew GCC, for example:
+构建完成后，可执行文件位于 `build/bin/matmul`。
+
+## 运行
 
 ```bash
-CC=/opt/homebrew/bin/gcc-16 cmake -S . -B build
-cmake --build build
+./build/bin/matmul --list
+./build/bin/matmul -m naive -n 500 -r 5
+./build/bin/matmul -m openmp -n 500 -t 4 -r 5
+./build/bin/matmul --all -n 500 -r 5
 ```
 
-To change the default matrix size, configure with `-DMATRIX_N=512`.
+常用参数：
 
-## Run
+| 参数 | 作用 |
+| --- | --- |
+| `-l`, `--list` | 列出已注册的算法 |
+| `-a`, `--all` | 运行所有可用算法 |
+| `-m`, `--module NAME` | 运行指定算法，如 `naive`、`openmp` |
+| `-n`, `--size N` | 指定方阵的规模 |
+| `-r`, `--runs N` | 指定运行次数，默认为 5 |
+| `-t`, `--threads N` | 指定 OpenMP 线程数 |
+| `-A`, `--input-a SOURCE` | 指定输入矩阵 A 的来源 |
+| `-B`, `--input-b SOURCE` | 指定输入矩阵 B 的来源 |
+| `--seed N` | 为随机输入指定种子 |
+
+### 输入矩阵
+
+A、B 可分别选择 `random` 或文本文件路径；未指定时默认为 `random`。
 
 ```bash
-./build/matmul/matmul --list
-./build/matmul/matmul -m naive -n 500 -r 5
-./build/matmul/matmul -m openmp -n 500 -t 4 -r 5
-./build/matmul/matmul --all -r 5
+./build/bin/matmul -A random -B random -n 500 --seed 1234 -m naive
+./build/bin/matmul -A matrix_a.txt -B matrix_b.txt -m naive
+./build/bin/matmul -A matrix_a.txt -B random -m openmp -t 4
 ```
 
-Use `-n` for the runtime matrix size, `-r` for the number of runs, and `-t`
-for the OpenMP thread count. By default, both input matrices are generated
-randomly. You can choose each input independently with `-A`/`--input-a`
-and `-B`/`--input-b`:
+如果所有输入均随机，则必须指定 `-n`；否则由文件描述决定规模。文件描述矩阵的规模与指定的 `-n` 应当一致。
 
-```bash
-./build/matmul/matmul -A random -B random -n 500 -m naive
-./build/matmul/matmul -A matrix_a.txt -B matrix_b.txt -m naive
-./build/matmul/matmul -A matrix_a.txt -B random -m openmp -t 4
-./build/matmul/matmul -A random -B random -n 500 --seed 1234 -m naive
-```
-
-The source `random` generates values from a seed. `--seed N` sets a shared seed
-for A and B (the two matrices use distinct sequences). Without `--seed`, a
-seed is generated from the current time; the program prints the seed when a
-random matrix is used so the run can be reproduced with `--seed`. When both
-inputs come from files, `--seed` has no effect. Any other source is
-treated as a text file. When both sources are `random`, `-n` is required; a
-file source provides the dimension. A matrix file starts with its dimension and then has
-`N*N` numeric values, for example:
+每个文本文件描述**一个方阵**：第一项是正整数边长 `N`，随后是按行排列的 `N × N` 个数字，数字可用空格或换行分隔。例如 `2 × 2` 的矩阵：
 
 ```text
 2
 1 2
 3 4
 ```
-
-When a file is used, its dimension determines `N`; an explicit `-n` must match
-it. Both input files must have the same dimension. Results are validated
-against matrix multiplication. The `stats/` directory contains the
-thread-scaling experiment and plotting scripts; see `stats/README.md`.
-
-The `main` branch hosts the shared framework; the `lu` branch hosts the LU
-decomposition tool.

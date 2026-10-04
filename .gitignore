@@ -8,6 +8,7 @@ Makefile
 compile_commands.json
 
 # Generated experiment output
+stats/
 *.o
 *.a
 *.so
