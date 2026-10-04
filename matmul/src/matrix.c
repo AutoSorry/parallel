@@ -1,15 +1,15 @@
 #include "matrix.h"
 
-void matmul_matrix_zero(double *matrix, int n) {
-    for (int i = 0; i < n * n; ++i) {
-        matrix[i] = 0.0;
+void matrix_zero(matrix *value) {
+    for (int i = 0; i < value->n * value->n; ++i) {
+        value->data[i] = 0.0;
     }
 }
 
-double matmul_matrix_sum(const double *matrix, int n) {
+double matrix_sum(const matrix *value) {
     double sum = 0.0;
-    for (int i = 0; i < n * n; ++i) {
-        sum += matrix[i];
+    for (int i = 0; i < value->n * value->n; ++i) {
+        sum += value->data[i];
     }
     return sum;
 }

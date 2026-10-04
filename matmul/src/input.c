@@ -9,35 +9,35 @@ static unsigned int next_value(unsigned int *state) {
     return *state;
 }
 
-static void fill_random(double *matrix, int n, unsigned int seed) {
+void matrix_fill_random(matrix *value, unsigned int seed) {
     unsigned int state = seed;
 
-    for (int i = 0; i < n * n; ++i) {
-        matrix[i] = (double)(next_value(&state) % 1000u) / 1000.0;
+    for (int i = 0; i < value->n * value->n; ++i) {
+        value->data[i] = (double)(next_value(&state) % 1000u) / 1000.0;
     }
 }
 
-static int load_file(double *matrix, int n, const char *source,
+int matrix_read_file(matrix *value, const char *path,
                      char *error, size_t error_size) {
-    FILE *file = fopen(source, "r");
+    FILE *file = fopen(path, "r");
     if (file == NULL) {
-        snprintf(error, error_size, "cannot open matrix file '%s'", source);
+        snprintf(error, error_size, "cannot open matrix file '%s'", path);
         return -1;
     }
 
     int file_n = 0;
-    if (fscanf(file, "%d", &file_n) != 1 || file_n != n) {
+    if (fscanf(file, "%d", &file_n) != 1 || file_n != value->n) {
         fclose(file);
         snprintf(error, error_size,
-                 "matrix file '%s' has an invalid dimension", source);
+                 "matrix file '%s' has an invalid dimension", path);
         return -1;
     }
 
-    for (int i = 0; i < n * n; ++i) {
-        if (fscanf(file, "%lf", &matrix[i]) != 1) {
+    for (int i = 0; i < value->n * value->n; ++i) {
+        if (fscanf(file, "%lf", &value->data[i]) != 1) {
             fclose(file);
             snprintf(error, error_size,
-                     "matrix file '%s' has too few values", source);
+                     "matrix file '%s' has too few values", path);
             return -1;
         }
     }
@@ -46,7 +46,7 @@ static int load_file(double *matrix, int n, const char *source,
     if (fscanf(file, " %c", &extra) == 1) {
         fclose(file);
         snprintf(error, error_size,
-                 "matrix file '%s' has extra data", source);
+                 "matrix file '%s' has extra data", path);
         return -1;
     }
 
@@ -77,28 +77,5 @@ int matrix_source_dimension(const char *source,
     }
 
     fclose(file);
-    return 0;
-}
-
-int matrix_problem_init(matmul_problem *problem,
-                        const char *source_a,
-                        const char *source_b,
-                        char *error,
-                        size_t error_size) {
-    if (strcmp(source_a, "random") == 0) {
-        fill_random(problem->a, problem->n, 123456789u);
-    } else if (load_file(problem->a, problem->n, source_a,
-                         error, error_size) != 0) {
-        return -1;
-    }
-
-    if (strcmp(source_b, "random") == 0) {
-        fill_random(problem->b, problem->n, 987654321u);
-    } else if (load_file(problem->b, problem->n, source_b,
-                         error, error_size) != 0) {
-        return -1;
-    }
-
-    matmul_matrix_zero(problem->c, problem->n);
     return 0;
 }

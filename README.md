@@ -35,16 +35,21 @@ To change the default matrix size, configure with `-DMATRIX_N=512`.
 
 Use `-n` for the runtime matrix size, `-r` for the number of runs, and `-t`
 for the OpenMP thread count. By default, both input matrices are generated
-deterministically. You can choose each input independently with `-A`/`--input-a`
+randomly. You can choose each input independently with `-A`/`--input-a`
 and `-B`/`--input-b`:
 
 ```bash
 ./build/matmul/matmul -A random -B random -n 500 -m naive
 ./build/matmul/matmul -A matrix_a.txt -B matrix_b.txt -m naive
 ./build/matmul/matmul -A matrix_a.txt -B random -m openmp -t 4
+./build/matmul/matmul -A random -B random -n 500 --seed 1234 -m naive
 ```
 
-The source `random` selects deterministic generated data. Any other source is
+The source `random` generates values from a seed. `--seed N` sets a shared seed
+for A and B (the two matrices use distinct sequences). Without `--seed`, a
+seed is generated from the current time; the program prints the seed when a
+random matrix is used so the run can be reproduced with `--seed`. When both
+inputs come from files, `--seed` has no effect. Any other source is
 treated as a text file. When both sources are `random`, `-n` is required; a
 file source provides the dimension. A matrix file starts with its dimension and then has
 `N*N` numeric values, for example:

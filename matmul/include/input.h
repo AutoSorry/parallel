@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include "problem.h"
+#include "matrix.h"
 
 #include <stddef.h>
 
@@ -9,10 +9,8 @@ int matrix_source_dimension(const char *source,
                             int *dimension,
                             char *error,
                             size_t error_size);
-int matrix_problem_init(matmul_problem *problem,
-                        const char *source_a,
-                        const char *source_b,
-                        char *error,
-                        size_t error_size);
+int matrix_read_file(matrix *value, const char *path,
+                     char *error, size_t error_size);
+void matrix_fill_random(matrix *value, unsigned int seed);
 
 #endif

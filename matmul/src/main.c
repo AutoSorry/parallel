@@ -1,32 +1,32 @@
 #include "app.h"
+#include "cli.h"
 #include "validate.h"
 #include "timer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#define MAX_SELECTED 64
-
-static void usage(const char *program) {
-    printf("Usage: %s [--list|-l] [--all|-a] [--module|-m NAME] "
-           "[--runs|-r N] [--size|-n N] [--threads|-t N] "
-           "[--input-a|-A SOURCE] [--input-b|-B SOURCE]\n", program);
-    printf("SOURCE is 'random' or a matrix file whose first value is N, "
-           "followed by N*N values.\n");
+static unsigned int default_seed(void) {
+    struct timespec now;
+    if (clock_gettime(CLOCK_REALTIME, &now) == 0) {
+        return (unsigned int)now.tv_sec ^ (unsigned int)now.tv_nsec;
+    }
+    return (unsigned int)time(NULL);
 }
 
 static int run_module(const kernel_module *module,
                       kernel_data *data,
-                      const double *reference,
+                      const matrix *reference,
                       int runs,
                       const kernel_options *options) {
     double total_ms = 0.0;
 
     printf("\nmodule: %s\n", module->name);
-    matmul_problem *problem = data->problem;
+    matmul_task *task = data->task;
     for (int run = 0; run < runs; ++run) {
-        matmul_matrix_zero(problem->c, problem->n);
+        matrix_zero(task->c);
         double start = now_seconds();
         module->run(data, options);
         double end = now_seconds();
@@ -36,121 +36,58 @@ static int run_module(const kernel_module *module,
     }
 
     printf("  avg: %.3f ms\n", total_ms / runs);
-    printf("  sum: %.6f\n", matmul_matrix_sum(problem->c, problem->n));
+    printf("  sum: %.6f\n", matrix_sum(task->c));
     printf("  validation: ");
-    int passed = matmul_validate_result(problem->c, reference, problem->n);
+    int passed = matmul_validate_result(task->c->data, reference->data,
+                                        task->c->n);
     printf("%s\n", passed ? "PASS" : "FAIL");
     return passed ? 0 : 1;
 }
 
+void matmul_register_algorithms(void) {
+    matmul_register_naive();
+    matmul_register_openmp();
+    matmul_register_stub();
+}
+
 int main(int argc, char **argv) {
-    int n = 0;
-    int runs = 5;
-    int threads = 0;
-    int size_specified = 0;
-    int run_all = 1;
-    const char *source_a = "random";
-    const char *source_b = "random";
-    const kernel_module *selected[MAX_SELECTED];
-    int selected_count = 0;
+    cli_options cli;
 
     matmul_register_algorithms();
 
-    for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "--list") == 0 || strcmp(argv[i], "-l") == 0) {
-            kernel_list_all();
-            return 0;
-        } else if (strcmp(argv[i], "--all") == 0 || strcmp(argv[i], "-a") == 0) {
-            run_all = 1;
-        } else if (strcmp(argv[i], "--module") == 0 || strcmp(argv[i], "-m") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            const kernel_module *module = kernel_find(argv[++i]);
-            if (module == NULL) {
-                fprintf(stderr, "unknown module: %s\n", argv[i]);
-                kernel_list_all();
-                return 1;
-            }
-            if (selected_count >= MAX_SELECTED) {
-                fprintf(stderr, "too many selected modules\n");
-                return 1;
-            }
-            selected[selected_count++] = module;
-            run_all = 0;
-        } else if (strcmp(argv[i], "--runs") == 0 || strcmp(argv[i], "-r") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            runs = atoi(argv[++i]);
-            if (runs <= 0) {
-                fprintf(stderr, "runs must be positive\n");
-                return 1;
-            }
-        } else if (strcmp(argv[i], "--size") == 0 || strcmp(argv[i], "-n") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            n = atoi(argv[++i]);
-            if (n <= 0) {
-                fprintf(stderr, "size must be positive\n");
-                return 1;
-            }
-            size_specified = 1;
-        } else if (strcmp(argv[i], "--threads") == 0 || strcmp(argv[i], "-t") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            threads = atoi(argv[++i]);
-            if (threads <= 0) {
-                fprintf(stderr, "threads must be positive\n");
-                return 1;
-            }
-        } else if (strcmp(argv[i], "--input-a") == 0 || strcmp(argv[i], "-A") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            source_a = argv[++i];
-        } else if (strcmp(argv[i], "--input-b") == 0 || strcmp(argv[i], "-B") == 0) {
-            if (i + 1 >= argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            source_b = argv[++i];
-        } else {
-            usage(argv[0]);
-            return 1;
-        }
+    cli_defaults(&cli);
+    if (cli_parse(&cli, argc, argv) != 0) {
+        return 1;
+    }
+    if (cli.show_list) {
+        kernel_list_all();
+        return 0;
     }
 
     char error[256];
     int source_a_n = 0;
     int source_b_n = 0;
-    if (matrix_source_dimension(source_a, &source_a_n,
+    if (matrix_source_dimension(cli.source_a, &source_a_n,
                                 error, sizeof(error)) != 0 ||
-        matrix_source_dimension(source_b, &source_b_n,
+        matrix_source_dimension(cli.source_b, &source_b_n,
                                 error, sizeof(error)) != 0) {
         fprintf(stderr, "%s\n", error);
         return 1;
     }
 
+    int n = cli.n;
     int file_n = source_a_n != 0 ? source_a_n : source_b_n;
     if (source_a_n != 0 && source_b_n != 0 && source_a_n != source_b_n) {
         fprintf(stderr, "matrix input files must have the same dimension\n");
         return 1;
     }
     if (file_n != 0) {
-        if (size_specified && n != file_n) {
+        if (cli.size_specified && n != file_n) {
             fprintf(stderr, "--size does not match the matrix file dimension\n");
             return 1;
         }
         n = file_n;
-    } else if (!size_specified) {
+    } else if (!cli.size_specified) {
         fprintf(stderr, "--size is required when both inputs are random\n");
         return 1;
     }
@@ -169,12 +106,32 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    matmul_problem problem = {.n = n, .a = a, .b = b, .c = c};
-    matmul_problem reference_problem = {
-        .n = n, .a = a, .b = b, .c = reference
-    };
-    if (matrix_problem_init(&problem, source_a, source_b,
-                            error, sizeof(error)) != 0) {
+    matrix a_matrix = {.n = n, .data = a};
+    matrix b_matrix = {.n = n, .data = b};
+    matrix c_matrix = {.n = n, .data = c};
+    matrix reference_matrix = {.n = n, .data = reference};
+    int random_a = strcmp(cli.source_a, "random") == 0;
+    int random_b = strcmp(cli.source_b, "random") == 0;
+    unsigned int seed = 0;
+    if (random_a || random_b) {
+        seed = cli.seed_specified ? cli.seed : default_seed();
+    }
+    int input_failed = 0;
+    if (random_a) {
+        matrix_fill_random(&a_matrix, seed);
+    } else {
+        input_failed = matrix_read_file(&a_matrix, cli.source_a,
+                                        error, sizeof(error));
+    }
+    if (!input_failed) {
+        if (random_b) {
+            matrix_fill_random(&b_matrix, seed ^ 0x9e3779b9u);
+        } else {
+            input_failed = matrix_read_file(&b_matrix, cli.source_b,
+                                            error, sizeof(error));
+        }
+    }
+    if (input_failed) {
         fprintf(stderr, "%s\n", error);
         free(a);
         free(b);
@@ -182,10 +139,21 @@ int main(int argc, char **argv) {
         free(reference);
         return 1;
     }
-    kernel_options options = {.threads = threads};
-    kernel_data reference_data = {
-        .problem = &reference_problem, .workspace = NULL
+    if (random_a || random_b) {
+        printf("seed=%u\n", seed);
+    }
+    kernel_options options = {.threads = cli.threads};
+    matmul_task task = {
+        .a = &a_matrix,
+        .b = &b_matrix,
+        .c = &c_matrix
     };
+    matmul_task reference_task = {
+        .a = &a_matrix,
+        .b = &b_matrix,
+        .c = &reference_matrix
+    };
+    kernel_data reference_data = {.task = &reference_task, .workspace = NULL};
     const kernel_module *naive = kernel_find("naive");
     if (naive == NULL) {
         fprintf(stderr, "naive reference module is missing\n");
@@ -197,21 +165,23 @@ int main(int argc, char **argv) {
     }
     naive->run(&reference_data, &options);
 
-    printf("N=%d runs=%d threads=%s\n", n, runs,
-           threads > 0 ? "requested" : "default");
+    printf("N=%d runs=%d threads=%s\n", n, cli.runs,
+           cli.threads > 0 ? "requested" : "default");
 
-    kernel_data data = {.problem = &problem, .workspace = NULL};
+    kernel_data data = {.task = &task, .workspace = NULL};
     int failed = 0;
-    if (run_all) {
+    if (cli.run_all) {
         for (int i = 0; i < kernel_count(); ++i) {
             const kernel_module *module = kernel_at(i);
             if (module != NULL && strcmp(module->name, "stub") != 0) {
-                failed += run_module(module, &data, reference, runs, &options);
+                failed += run_module(module, &data, &reference_matrix,
+                                     cli.runs, &options);
             }
         }
     } else {
-        for (int i = 0; i < selected_count; ++i) {
-            failed += run_module(selected[i], &data, reference, runs, &options);
+        for (int i = 0; i < cli.selected_count; ++i) {
+            failed += run_module(cli.selected[i], &data, &reference_matrix,
+                                 cli.runs, &options);
         }
     }
 

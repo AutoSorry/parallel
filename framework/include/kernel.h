@@ -2,8 +2,8 @@
 #define KERNEL_H
 
 typedef struct {
-    /* The application owns and defines the problem object. */
-    void *problem;
+    /* The application owns and defines the task object. */
+    void *task;
     /* Optional algorithm-owned temporary storage. */
     void *workspace;
 } kernel_data;
