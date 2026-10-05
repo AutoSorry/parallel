@@ -12,6 +12,7 @@ stats/
 *.o
 *.a
 *.so
+*.zip
 
 # macOS/editor files
 .DS_Store
