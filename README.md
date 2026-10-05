@@ -16,11 +16,12 @@
 │   └── src/
 │       ├── registry.c
 │       └── timer.c
-└── matmul/                     # 矩阵乘法应用
-    ├── CMakeLists.txt
-    ├── algorithms/
-    ├── include/
-    └── src/
+├── matmul/                     # 矩阵乘法应用
+│   ├── CMakeLists.txt
+│   ├── algorithms/
+│   ├── include/
+│   └── src/
+└── docs/                       # 实验报告
 ```
 
 ## 环境与构建

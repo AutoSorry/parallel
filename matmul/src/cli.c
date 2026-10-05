@@ -101,17 +101,17 @@ int cli_parse(cli_options *options, int argc, char **argv) {
                 return -1;
             }
             const char *text = argv[++i];
-            if (strlen(text) != SEED_LENGTH) {
+            if (strlen(text) != MATRIX_SEED_LENGTH) {
                 fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
                 return -1;
             }
-            for (int j = 0; j < SEED_LENGTH; ++j) {
+            for (int j = 0; j < MATRIX_SEED_LENGTH; ++j) {
                 if (text[j] < 'A' || text[j] > 'Z') {
                     fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
                     return -1;
                 }
             }
-            memcpy(options->seed, text, SEED_LENGTH + 1);
+            memcpy(options->seed, text, MATRIX_SEED_LENGTH + 1);
             options->seed_specified = 1;
         } else {
             cli_print_usage(argv[0]);
