@@ -5,23 +5,24 @@
 
 static void run_serial_lu(kernel_data *data, const kernel_options *options) {
     (void)options;
+    lu_task *task = data->task;
+    int n = task->a->n;
 
-    for (int i = 0; i < data->n * data->n; ++i) {
-        data->c[i] = data->a[i];
-    }
+    matrix_copy(task->packed_lu, task->a);
 
-    for (int k = 0; k < data->n; ++k) {
-        double pivot = data->c[k * data->n + k];
+    for (int k = 0; k < n; ++k) {
+        double pivot = task->packed_lu->data[k * n + k];
         if (fabs(pivot) < 1e-15) {
             fprintf(stderr, "serial_lu: zero pivot at row %d\n", k);
             return;
         }
 
-        for (int i = k + 1; i < data->n; ++i) {
-            data->c[i * data->n + k] /= pivot;
-            for (int j = k + 1; j < data->n; ++j) {
-                data->c[i * data->n + j] -=
-                    data->c[i * data->n + k] * data->c[k * data->n + j];
+        for (int i = k + 1; i < n; ++i) {
+            task->packed_lu->data[i * n + k] /= pivot;
+            for (int j = k + 1; j < n; ++j) {
+                task->packed_lu->data[i * n + j] -=
+                    task->packed_lu->data[i * n + k] *
+                    task->packed_lu->data[k * n + j];
             }
         }
     }

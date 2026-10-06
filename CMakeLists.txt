@@ -6,5 +6,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+find_package(OpenMP REQUIRED COMPONENTS C)
+
 add_subdirectory(framework)
 add_subdirectory(lu)

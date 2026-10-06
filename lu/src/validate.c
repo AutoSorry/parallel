@@ -3,7 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 
-int lu_validate_result(const double *original, const double *packed_lu, int n) {
+int lu_validate_result(const matrix *original, const matrix *packed_lu) {
+    int n = original->n;
     double max_abs = 0.0;
     double max_original = 0.0;
 
@@ -11,14 +12,16 @@ int lu_validate_result(const double *original, const double *packed_lu, int n) {
         for (int j = 0; j < n; ++j) {
             double reconstructed = 0.0;
             for (int k = 0; k < n; ++k) {
-                double l = i == k ? 1.0 : (i > k ? packed_lu[i * n + k] : 0.0);
-                double u = k <= j ? packed_lu[k * n + j] : 0.0;
+                double l = i == k ? 1.0 :
+                           (i > k ? packed_lu->data[i * n + k] : 0.0);
+                double u = k <= j ? packed_lu->data[k * n + j] : 0.0;
                 reconstructed += l * u;
             }
 
             int index = i * n + j;
-            double absolute_error = fabs(reconstructed - original[index]);
-            double original_magnitude = fabs(original[index]);
+            double absolute_error =
+                fabs(reconstructed - original->data[index]);
+            double original_magnitude = fabs(original->data[index]);
             if (absolute_error > max_abs) {
                 max_abs = absolute_error;
             }
