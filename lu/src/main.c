@@ -8,7 +8,8 @@
 
 static void usage(const char *program) {
     printf("Usage: %s [--list|-l] [--module|-m NAME] "
-           "[--runs|-r N] [--size|-n N] [--threads|-t N]\n", program);
+           "[--runs|-r N] [--size|-n N] [--threads|-t N] "
+           "[--seed SEED]\n", program);
 }
 
 static int run_module(const kernel_module *module,
@@ -21,7 +22,7 @@ static int run_module(const kernel_module *module,
 
     printf("\nmodule: %s\n", module->name);
     for (int run = 0; run < runs; ++run) {
-        matrix_zero(task->packed_lu);
+        matrix_copy(task->a, original);
         timer measurement;
         timer_start(&measurement);
         module->run(data, options);
@@ -34,7 +35,7 @@ static int run_module(const kernel_module *module,
 
     printf("  avg: %.3f ms\n", total_ms / runs);
     printf("  validation: ");
-    int passed = lu_validate_result(original, task->packed_lu);
+    int passed = lu_validate_result(original, task->a);
     printf("%s\n", passed ? "PASS" : "FAIL");
     return passed ? 0 : 1;
 }
@@ -43,6 +44,8 @@ int main(int argc, char **argv) {
     int n = 0;
     int runs = 5;
     int threads = 0;
+    int seed_specified = 0;
+    char seed[LU_SEED_LENGTH + 1] = {0};
     const kernel_module *selected = NULL;
 
     lu_register_algorithms();
@@ -92,6 +95,19 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "threads must be positive\n");
                 return 1;
             }
+        } else if (strcmp(argv[i], "--seed") == 0) {
+            if (++i >= argc || strlen(argv[i]) != LU_SEED_LENGTH) {
+                fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
+                return 1;
+            }
+            for (int j = 0; j < LU_SEED_LENGTH; ++j) {
+                if (argv[i][j] < 'A' || argv[i][j] > 'Z') {
+                    fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
+                    return 1;
+                }
+            }
+            memcpy(seed, argv[i], LU_SEED_LENGTH + 1);
+            seed_specified = 1;
         } else {
             usage(argv[0]);
             return 1;
@@ -114,14 +130,18 @@ int main(int argc, char **argv) {
     }
 
     matrix original = {.n = n, .data = original_data};
-    matrix packed_lu = {.n = n, .data = packed_data};
-    lu_matrix_init(&original);
-    lu_task task = {.a = &original, .packed_lu = &packed_lu};
+    matrix work = {.n = n, .data = packed_data};
+    if (!seed_specified) {
+        lu_generate_seed(seed);
+    }
+    lu_matrix_init(&original, seed);
+    lu_task task = {.a = &work};
     kernel_data data = {.task = &task, .workspace = NULL};
     kernel_options options = {.threads = threads};
 
     printf("N=%d runs=%d threads=%s pivoting=none\n", n, runs,
            threads > 0 ? "requested" : "default");
+    printf("seed=%s\n", seed);
 
     int failed = 0;
     if (selected != NULL) {

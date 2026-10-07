@@ -6,8 +6,7 @@
 #include "registry.h"
 
 typedef struct {
-    const matrix *a;
-    matrix *packed_lu;
+    matrix *a;
 } lu_task;
 
 void lu_register_algorithms(void);
