@@ -1,7 +1,6 @@
 #include "lu.h"
 
-#include <math.h>
-#include <stdio.h>
+#include <stddef.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -14,24 +13,25 @@ static void run_openmp_lu(kernel_data *data,
     int n = a->n;
     int threads = options != NULL ? options->threads : 0;
 
-    for (int k = 0; k < n; ++k) {
-        double pivot = a->data[k * n + k];
-        if (fabs(pivot) < 1e-15) {
-            fprintf(stderr, "openmp_lu: zero pivot at row %d\n", k);
-            return;
-        }
-
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(threads > 0 ? threads : omp_get_max_threads())
-#endif
-        for (int i = k + 1; i < n; ++i) {
-            a->data[i * n + k] /= pivot;
-            for (int j = k + 1; j < n; ++j) {
-                a->data[i * n + j] -=
-                    a->data[i * n + k] * a->data[k * n + j];
+#pragma omp parallel num_threads(threads > 0 ? threads : omp_get_max_threads())
+    {
+        for (int k = 0; k < n; ++k) {
+            double pivot = a->data[k * n + k];
+
+#pragma omp for schedule(static)
+            for (int i = k + 1; i < n; ++i) {
+                a->data[i * n + k] /= pivot;
+                for (int j = k + 1; j < n; ++j) {
+                    a->data[i * n + j] -=
+                        a->data[i * n + k] * a->data[k * n + j];
+                }
             }
         }
     }
+#else
+    (void)threads;
+#endif
 }
 
 void lu_register_openmp_lu(void) {

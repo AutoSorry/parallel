@@ -3,6 +3,6 @@
 
 #include "lu_matrix.h"
 
-int lu_validate_result(const matrix *original, const matrix *packed_lu);
+int lu_validate_result(const matrix *actual, const matrix *reference);
 
 #endif

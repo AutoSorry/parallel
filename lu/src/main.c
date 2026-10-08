@@ -9,12 +9,13 @@
 static void usage(const char *program) {
     printf("Usage: %s [--list|-l] [--module|-m NAME] "
            "[--runs|-r N] [--size|-n N] [--threads|-t N] "
-           "[--seed SEED]\n", program);
+           "[--chunk|-c N] [--seed SEED]\n", program);
 }
 
 static int run_module(const kernel_module *module,
                       kernel_data *data,
                       const matrix *original,
+                      const matrix *reference,
                       int runs,
                       const kernel_options *options) {
     lu_task *task = data->task;
@@ -35,7 +36,7 @@ static int run_module(const kernel_module *module,
 
     printf("  avg: %.3f ms\n", total_ms / runs);
     printf("  validation: ");
-    int passed = lu_validate_result(original, task->a);
+    int passed = lu_validate_result(task->a, reference);
     printf("%s\n", passed ? "PASS" : "FAIL");
     return passed ? 0 : 1;
 }
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
     int n = 0;
     int runs = 5;
     int threads = 0;
+    int chunk_size = 1;
     int seed_specified = 0;
     char seed[LU_SEED_LENGTH + 1] = {0};
     const kernel_module *selected = NULL;
@@ -95,6 +97,16 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "threads must be positive\n");
                 return 1;
             }
+        } else if (strcmp(argv[i], "--chunk") == 0 || strcmp(argv[i], "-c") == 0) {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            chunk_size = atoi(argv[i]);
+            if (chunk_size <= 0) {
+                fprintf(stderr, "chunk size must be positive\n");
+                return 1;
+            }
         } else if (strcmp(argv[i], "--seed") == 0) {
             if (++i >= argc || strlen(argv[i]) != LU_SEED_LENGTH) {
                 fprintf(stderr, "seed must contain exactly 8 uppercase letters\n");
@@ -122,38 +134,54 @@ int main(int argc, char **argv) {
     size_t bytes = (size_t)n * (size_t)n * sizeof(double);
     double *original_data = malloc(bytes);
     double *packed_data = malloc(bytes);
-    if (original_data == NULL || packed_data == NULL) {
+    double *reference_data = malloc(bytes);
+    if (original_data == NULL || packed_data == NULL || reference_data == NULL) {
         fprintf(stderr, "failed to allocate matrices\n");
         free(original_data);
         free(packed_data);
+        free(reference_data);
         return 1;
     }
 
     matrix original = {.n = n, .data = original_data};
     matrix work = {.n = n, .data = packed_data};
+    matrix reference = {.n = n, .data = reference_data};
     if (!seed_specified) {
         lu_generate_seed(seed);
     }
     lu_matrix_init(&original, seed);
-    lu_task task = {.a = &work};
+    matrix_copy(&reference, &original);
+
+    lu_task reference_task = {.a = &reference, .chunk_size = chunk_size};
+    kernel_data reference_kernel_data = {
+        .task = &reference_task,
+        .workspace = NULL
+    };
+    kernel_options reference_options = {.threads = 0};
+    kernel_find("serial_lu")->run(&reference_kernel_data, &reference_options);
+
+    lu_task task = {.a = &work, .chunk_size = chunk_size};
     kernel_data data = {.task = &task, .workspace = NULL};
     kernel_options options = {.threads = threads};
 
     printf("N=%d runs=%d threads=%s pivoting=none\n", n, runs,
            threads > 0 ? "requested" : "default");
     printf("seed=%s\n", seed);
+    printf("chunk=%d\n", chunk_size);
 
     int failed = 0;
     if (selected != NULL) {
-        failed = run_module(selected, &data, &original, runs, &options);
+        failed = run_module(selected, &data, &original, &reference,
+                            runs, &options);
     } else {
         for (int i = 0; i < kernel_count(); ++i) {
-            failed += run_module(kernel_at(i), &data, &original,
+            failed += run_module(kernel_at(i), &data, &original, &reference,
                                  runs, &options);
         }
     }
 
     free(original_data);
     free(packed_data);
+    free(reference_data);
     return failed == 0 ? 0 : 1;
 }
