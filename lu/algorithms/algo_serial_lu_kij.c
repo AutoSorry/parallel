@@ -3,7 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 
-static void run_serial_lu(kernel_data *data, const kernel_options *options) {
+static void run_serial_lu_kij(kernel_data *data,
+                              const kernel_options *options) {
     (void)options;
     lu_task *task = data->task;
     matrix *a = task->a;
@@ -12,7 +13,7 @@ static void run_serial_lu(kernel_data *data, const kernel_options *options) {
     for (int k = 0; k < n; ++k) {
         double pivot = a->data[k * n + k];
         if (fabs(pivot) < 1e-15) {
-            fprintf(stderr, "serial_lu: zero pivot at row %d\n", k);
+            fprintf(stderr, "serial_lu_kij: zero pivot at row %d\n", k);
             return;
         }
 
@@ -26,9 +27,11 @@ static void run_serial_lu(kernel_data *data, const kernel_options *options) {
     }
 }
 
-void lu_register_serial_lu(void) {
+void lu_register_serial_lu_kij(void) {
     static const kernel_module module = {
-        "serial_lu", "serial LU without pivoting, packed L/U output", run_serial_lu
+        "serial_lu_kij",
+        "serial LU with k-i-j loop order",
+        run_serial_lu_kij
     };
     kernel_register(&module);
 }

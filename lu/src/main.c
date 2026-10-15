@@ -158,7 +158,8 @@ int main(int argc, char **argv) {
         .workspace = NULL
     };
     kernel_options reference_options = {.threads = 0};
-    kernel_find("serial_lu")->run(&reference_kernel_data, &reference_options);
+    kernel_find("serial_lu_kij")->run(&reference_kernel_data,
+                                       &reference_options);
 
     lu_task task = {.a = &work, .chunk_size = chunk_size};
     kernel_data data = {.task = &task, .workspace = NULL};

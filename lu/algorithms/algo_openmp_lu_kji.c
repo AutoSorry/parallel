@@ -6,8 +6,8 @@
 #include <omp.h>
 #endif
 
-static void run_openmp_lu(kernel_data *data,
-                           const kernel_options *options) {
+static void run_openmp_lu_kji(kernel_data *data,
+                              const kernel_options *options) {
     lu_task *task = data->task;
     matrix *a = task->a;
     int n = a->n;
@@ -22,9 +22,13 @@ static void run_openmp_lu(kernel_data *data,
 #pragma omp for schedule(static)
             for (int i = k + 1; i < n; ++i) {
                 a->data[i * n + k] /= pivot;
-                for (int j = k + 1; j < n; ++j) {
-                    a->data[i * n + j] -=
-                        a->data[i * n + k] * a->data[k * n + j];
+            }
+
+#pragma omp for schedule(static)
+            for (int j = k + 1; j < n; ++j) {
+                double upper = a->data[k * n + j];
+                for (int i = k + 1; i < n; ++i) {
+                    a->data[i * n + j] -= a->data[i * n + k] * upper;
                 }
             }
         }
@@ -34,9 +38,11 @@ static void run_openmp_lu(kernel_data *data,
 #endif
 }
 
-void lu_register_openmp_lu(void) {
+void lu_register_openmp_lu_kji(void) {
     static const kernel_module module = {
-        "openmp_lu", "OpenMP LU with parallel row updates", run_openmp_lu
+        "openmp_lu_kji",
+        "OpenMP LU with k-j-i loop order and static scheduling",
+        run_openmp_lu_kji
     };
     kernel_register(&module);
 }
