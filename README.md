@@ -65,6 +65,12 @@ build/bin/lu
 ./build/bin/lu -m openmp_lu_kji -n 500 -r 5 -t 4 --seed ABCDEFGH
 ```
 
+运行对 `j` 循环进行 SIMD 向量化的 OpenMP 版本：
+
+```bash
+./build/bin/lu -m openmp_lu_kij_simd -n 500 -r 5 -t 4 --seed ABCDEFGH
+```
+
 常用参数：
 
 | 参数 | 作用 |
@@ -167,3 +173,17 @@ for k = 0 ... N-1
 ```
 
 两种 OpenMP 算法都使用静态调度和相同线程数，但 `openmp_lu_kji` 的内层访问跨越矩阵行，同时每个 `k` 比 `openmp_lu_kij` 多一次 OpenMP 工作共享同步。
+
+### `openmp_lu_kij_simd`
+
+该实现保持 `openmp_lu_kij` 的线程级并行方式不变：OpenMP 在线程之间静态分配 `i` 行，并使用 `omp simd` 向量化每一行中连续访问的 `j` 循环：
+
+```text
+parallel for i = k+1 ... N-1
+    A[i][k] /= A[k][k]
+    multiplier = A[i][k]
+    simd for j = k+1 ... N-1
+        A[i][j] -= multiplier × A[k][j]
+```
+
+矩阵行地址和乘子在进入 `j` 循环前计算，避免在每个 SIMD 迭代中重复计算索引。该版本用于单独衡量显式 SIMD 对 OpenMP `k-i-j` 实现的影响。
