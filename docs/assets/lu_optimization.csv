@@ -1,0 +1,5 @@
+version,module,loop_order,simd,run1_ms,run2_ms,run3_ms,run4_ms,run5_ms,avg_ms,speedup_vs_v0,validation
+V0,openmp_lu_kij,k-i-j,no,248.605,247.968,248.484,249.122,248.908,248.617,1.000,PASS
+V1,openmp_lu_kji,k-j-i,no,832.775,834.834,833.428,814.426,805.965,824.286,0.302,PASS
+V2,openmp_lu_kij_simd,k-i-j,yes,171.095,168.651,169.445,166.706,167.184,168.616,1.474,PASS
+V3,openmp_lu_kji_simd,k-j-i,yes,809.326,814.714,812.252,808.884,807.095,810.454,0.307,PASS

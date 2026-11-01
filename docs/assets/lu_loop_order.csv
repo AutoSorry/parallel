@@ -1,0 +1,3 @@
+module,loop_order,run1_ms,run2_ms,run3_ms,run4_ms,run5_ms,avg_ms,speedup_vs_kji,validation
+serial_lu_kji,k-j-i,2797.396,2807.719,2805.552,2801.443,2805.454,2803.513,1.000,PASS
+serial_lu_kij,k-i-j,749.760,745.929,748.028,746.607,745.435,747.152,3.752,PASS

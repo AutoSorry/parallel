@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520">
+  <rect width="960" height="520" fill="#ffffff"/>
+  <text x="480" y="36" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700">调度策略对比（N=2000，4 线程）</text>
+  <line x1="110" y1="430" x2="910" y2="430" stroke="#333" stroke-width="2"/>
+  <line x1="110" y1="70" x2="110" y2="430" stroke="#333" stroke-width="2"/>
+  <g font-family="sans-serif" font-size="13" fill="#444" text-anchor="end">
+    <text x="98" y="435">0</text>
+    <text x="98" y="315">100</text>
+    <text x="98" y="195">200</text>
+    <text x="98" y="75">300</text>
+    <text x="98" y="62">ms</text>
+  </g>
+  <g stroke="#e2e2e2" stroke-width="1">
+    <line x1="110" y1="310" x2="910" y2="310"/>
+    <line x1="110" y1="190" x2="910" y2="190"/>
+    <line x1="110" y1="70" x2="910" y2="70"/>
+  </g>
+  <rect x="160" y="131.66" width="110" height="298.34" rx="4" fill="#4c5c75"/>
+  <rect x="330" y="80.21" width="110" height="349.79" rx="4" fill="#e76f51"/>
+  <rect x="500" y="128.81" width="110" height="301.19" rx="4" fill="#e9c46a"/>
+  <rect x="670" y="139.83" width="110" height="290.17" rx="4" fill="#2a9d8f"/>
+  <g font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#222">
+    <text x="215" y="122">248.6</text>
+    <text x="385" y="70">291.5</text>
+    <text x="555" y="119">251.0</text>
+    <text x="725" y="130">241.8</text>
+  </g>
+  <g font-family="sans-serif" font-size="14" text-anchor="middle" fill="#222">
+    <text x="215" y="458">static</text>
+    <text x="385" y="458">dynamic</text>
+    <text x="385" y="476">chunk=1</text>
+    <text x="555" y="458">dynamic</text>
+    <text x="555" y="476">chunk=4</text>
+    <text x="725" y="458">dynamic</text>
+    <text x="725" y="476">chunk=16</text>
+  </g>
+  <g font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#555">
+    <text x="215" y="502">1.000x</text>
+    <text x="385" y="502">0.853x</text>
+    <text x="555" y="502">0.991x</text>
+    <text x="725" y="502">1.028x</text>
+  </g>
+</svg>

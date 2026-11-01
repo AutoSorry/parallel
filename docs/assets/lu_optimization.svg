@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520">
+  <rect width="960" height="520" fill="#ffffff"/>
+  <text x="480" y="36" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700">LU 分解四版本平均运行时间（N=2000，4 线程）</text>
+  <line x1="110" y1="430" x2="910" y2="430" stroke="#333" stroke-width="2"/>
+  <line x1="110" y1="70" x2="110" y2="430" stroke="#333" stroke-width="2"/>
+  <g font-family="sans-serif" font-size="13" fill="#444" text-anchor="end">
+    <text x="98" y="435">0</text>
+    <text x="98" y="355">200</text>
+    <text x="98" y="275">400</text>
+    <text x="98" y="195">600</text>
+    <text x="98" y="115">800</text>
+    <text x="98" y="62">ms</text>
+  </g>
+  <g stroke="#e2e2e2" stroke-width="1">
+    <line x1="110" y1="350" x2="910" y2="350"/>
+    <line x1="110" y1="270" x2="910" y2="270"/>
+    <line x1="110" y1="190" x2="910" y2="190"/>
+    <line x1="110" y1="110" x2="910" y2="110"/>
+  </g>
+  <rect x="150" y="330.55" width="120" height="99.45" rx="4" fill="#4c5c75"/>
+  <rect x="350" y="100.29" width="120" height="329.71" rx="4" fill="#c9a227"/>
+  <rect x="550" y="362.55" width="120" height="67.45" rx="4" fill="#2a9d8f"/>
+  <rect x="750" y="105.82" width="120" height="324.18" rx="4" fill="#e76f51"/>
+  <g font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#222">
+    <text x="210" y="321">248.6</text>
+    <text x="410" y="90">824.3</text>
+    <text x="610" y="353">168.6</text>
+    <text x="810" y="96">810.5</text>
+  </g>
+  <g font-family="sans-serif" font-size="14" text-anchor="middle" fill="#222">
+    <text x="210" y="458">V0</text>
+    <text x="210" y="478">kij</text>
+    <text x="410" y="458">V1</text>
+    <text x="410" y="478">kji</text>
+    <text x="610" y="458">V2</text>
+    <text x="610" y="478">kij + SIMD</text>
+    <text x="810" y="458">V3</text>
+    <text x="810" y="478">kji + SIMD</text>
+  </g>
+  <g font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#555">
+    <text x="210" y="502">1.00x</text>
+    <text x="410" y="502">0.30x</text>
+    <text x="610" y="502">1.47x</text>
+    <text x="810" y="502">0.31x</text>
+  </g>
+</svg>
