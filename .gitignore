@@ -11,6 +11,7 @@ compile_commands.json
 *.o
 *.a
 *.so
+*.zip
 
 # macOS/editor files
 .DS_Store
